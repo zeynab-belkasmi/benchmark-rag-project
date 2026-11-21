@@ -1,0 +1,12 @@
+{
+  "_comment": "Mini validation set for Pipeline 1 (10 questions, week 1). Fill in once the corpus is chosen. 'reference_passages' is used to compute Context Recall.",
+  "questions": [
+    {
+      "id": "q01",
+      "type": "factual",
+      "question": "",
+      "reference_answer": "",
+      "reference_passages": []
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+data/uploads/
+data/models/
+data/results/
+qdrant_storage/
+corpus/raw/
+
+# Private working documents (kept local, not published)
+specification_rag_benchlab_v2.md
+PROJECT_SUMMARY.md
+CLAUDE.md
+.claude/

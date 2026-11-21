@@ -1,0 +1,12 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+pydantic>=2.7
+pydantic-settings>=2.3
+anthropic>=0.40
+qdrant-client>=1.10
+sentence-transformers>=3.0
+pymupdf4llm>=0.0.17
+langchain-text-splitters>=0.3
+tiktoken>=0.7
+pytest>=8.0
