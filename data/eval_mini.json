@@ -1,11 +1,103 @@
 {
-  "_comment": "Mini validation set for Pipeline 1 (10 questions, week 1). Fill in once the corpus is chosen. 'reference_passages' is used to compute Context Recall.",
+  "_comment": "Mini validation set for Pipeline 1 (10 questions, week 1). DRAFT written by Claude from the corpus text: every answer must be validated by the user. 'reference_passages' lists {doc, quote} where doc is the SOURCES.md ID and quote is a short excerpt (whitespace-normalised) used to compute Context Recall. Split mirrors the spec: 4 factual, 3 multi_passage, 2 relational, 1 no_answer.",
   "questions": [
     {
       "id": "q01",
       "type": "factual",
-      "question": "",
-      "reference_answer": "",
+      "question": "Which three quality dimensions does the Ragas framework measure for a RAG pipeline?",
+      "reference_answer": "Faithfulness (the answer is grounded in the retrieved context), Answer Relevance (the answer addresses the question) and Context Relevance (the retrieved context is focused and contains little irrelevant information).",
+      "reference_passages": [
+        {"doc": "B01", "quote": "First, Faithfulness refers to the idea that the answer should be grounded in the given context."},
+        {"doc": "B01", "quote": "Second, Answer Relevance refers to the idea that the generated answer should address the actual question that was provided."},
+        {"doc": "B01", "quote": "Finally, Context Relevance refers to the idea that the retrieved context should be focused"}
+      ]
+    },
+    {
+      "id": "q02",
+      "type": "factual",
+      "question": "On the WikiEval dataset, how often did Ragas faithfulness predictions agree with human annotators, compared with the GPT Score and GPT Ranking baselines?",
+      "reference_answer": "Ragas reached 0.95 accuracy for faithfulness, against 0.72 for GPT Score and 0.54 for GPT Ranking.",
+      "reference_passages": [
+        {"doc": "B01", "quote": "Table 1: Agreement with human annotators in pairwise comparisons of faithfulness, answer relevance and context relevance, using the WikEval dataset (accuracy)."}
+      ]
+    },
+    {
+      "id": "q03",
+      "type": "factual",
+      "question": "With Llama3.1-70B on the En.QA dataset, how does the F1 score of order-preserve RAG with 48K tokens compare with the same model reading the full context without RAG?",
+      "reference_answer": "Order-preserve RAG with 48K tokens reaches 47.25 F1, while the long-context Llama3.1-70B without RAG gets 34.26 F1 using about 117K tokens.",
+      "reference_passages": [
+        {"doc": "A08", "quote": "the approach without RAG only achieves a 34.26 F1 score on EN.QA with an average of 117K tokens as input. In contrast, our OP-RAG with 48K tokens as input attains a 47.25 F1 score."}
+      ]
+    },
+    {
+      "id": "q04",
+      "type": "factual",
+      "question": "In the hybrid-search question answering system, which BM25 boost value gave the best retrieval score, and what nDCG did it reach?",
+      "reference_answer": "A BM25 boost of 0.3, with a context nDCG of 0.868.",
+      "reference_passages": [
+        {"doc": "A06", "quote": "The optimal BM25 content boost was found to be 0.3, achieving the highest NDCG score."}
+      ]
+    },
+    {
+      "id": "q05",
+      "type": "multi_passage",
+      "question": "Why can retrieving or supplying more context degrade the quality of a RAG answer?",
+      "reference_answer": "More context raises the chance of covering the relevant passage, but it also adds irrelevant or distracting chunks. In OP-RAG, answer quality rises and then falls as more chunks are retrieved (inverted U-shaped curve). Ragas likewise notes that long contexts cost more and that LLMs are less effective at exploiting them, especially for information in the middle.",
+      "reference_passages": [
+        {"doc": "A08", "quote": "as the number of retrieved chunks increases, the answer quality initially rises and then declines."},
+        {"doc": "A08", "quote": "the likelihood of introducing irrelevant or distracting information also increases."},
+        {"doc": "B01", "quote": "when context passages are too long, LLMs are often less effective in exploiting that context, especially for information that is provided in the middle of the context passage"}
+      ]
+    },
+    {
+      "id": "q06",
+      "type": "multi_passage",
+      "question": "How do the Ragas paper and the hybrid-search paper each check that their automatic (LLM-based) evaluation agrees with humans?",
+      "reference_answer": "Ragas builds WikiEval (50 Wikipedia pages) and compares each metric's pairwise preferences with human annotators (accuracy, e.g. 0.95 for faithfulness). The hybrid-search paper compares GPT-4 accuracy scores with binary human feedback on 14 overlapping queries and reports a Pearson correlation of 0.89, noting that the sample is small.",
+      "reference_passages": [
+        {"doc": "B01", "quote": "we selected 50 Wikipedia pages covering events that have happened since the start of 2022"},
+        {"doc": "B01", "quote": "We count how often the answer/context preferred by the model"},
+        {"doc": "A06", "quote": "a subset of 14 queries that appeared in both golden dataset and a larger human evaluation dataset"},
+        {"doc": "A06", "quote": "Pearson correlation coefficient = 0.89"}
+      ]
+    },
+    {
+      "id": "q07",
+      "type": "multi_passage",
+      "question": "What chunking settings (size and overlap) are used in the GraphRAG, order-preserve RAG and hybrid-search papers?",
+      "reference_answer": "GraphRAG splits its corpora into 600-token chunks with 100-token overlaps. Order-preserve RAG uses 128-token chunks with no overlap. The hybrid-search system settles on about 1000-character chunks (ending on a sentence delimiter) with a 100-character overlap.",
+      "reference_passages": [
+        {"doc": "A03", "quote": "600-token text chunks, with 100-token overlaps between chunks"},
+        {"doc": "A08", "quote": "We set the chunk size as 128 tokens on all datasets. Chunks are non-overlapped."},
+        {"doc": "A06", "quote": "an approximate chunk size of 1000 characters with a split ensuring it ends on a sentence delimiter, with an overlap of 100 characters"}
+      ]
+    },
+    {
+      "id": "q08",
+      "type": "relational",
+      "question": "How do GraphRAG and RAPTOR each organise a document collection into a hierarchy of summaries, and what is the main structural difference?",
+      "reference_answer": "GraphRAG has an LLM build an entity knowledge graph, partitions it into hierarchical communities with the Leiden algorithm, and summarises each community; global questions are answered from these community summaries. RAPTOR instead recursively clusters text chunks and summarises the clusters into a tree whose levels are retrieved. The difference: GraphRAG's hierarchy is derived from entity relations in a graph, RAPTOR's from clustering of text similarity.",
+      "reference_passages": [
+        {"doc": "A03", "quote": "Community detection (e.g., Leiden, Traag et al., 2019) is used to partition the graph index"},
+        {"doc": "A02", "quote": "recursively embedding, clustering, and summarizing chunks of text, constructing a tree with differing levels of summarization from the bottom up"}
+      ]
+    },
+    {
+      "id": "q09",
+      "type": "relational",
+      "question": "How is the faithfulness/groundedness of an answer measured in the Ragas paper and in the hybrid-search paper, and what do the two definitions have in common?",
+      "reference_answer": "Ragas extracts statements from the answer and asks an LLM whether each is supported by the context; the score is the fraction of supported statements. The hybrid-search paper asks an LLM judge to rate on a 0-1 scale how well the response is supported by and does not contradict the retrieved context. Both define the quality as support of the answer by the retrieved context, judged by an LLM.",
+      "reference_passages": [
+        {"doc": "B01", "quote": "The final faithfulness score, F, is then computed as F = |V| / |S|"},
+        {"doc": "A06", "quote": "A response is considered grounded if it is supported by and does not contradict the given context."}
+      ]
+    },
+    {
+      "id": "q10",
+      "type": "no_answer",
+      "question": "How much did it cost in dollars to evaluate the WikiEval dataset with gpt-3.5-turbo-16k in the Ragas paper?",
+      "reference_answer": "NO_ANSWER: the corpus does not report this cost. The system should abstain.",
       "reference_passages": []
     }
   ]

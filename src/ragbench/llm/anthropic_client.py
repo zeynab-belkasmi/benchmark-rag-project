@@ -21,7 +21,8 @@ class AnthropicClient(LLMClient):
             system=system,
             messages=[{"role": "user", "content": user}],
             max_tokens=self._s.max_output_tokens,
-            temperature=self._s.temperature,
+            # No `temperature`: the installed SDK (anthropic 2.x) no longer accepts
+            # it for messages.stream, so the settings value is not forwarded.
         )
 
     def generate(self, system: str, user: str) -> LLMResult:

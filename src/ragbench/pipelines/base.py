@@ -16,7 +16,8 @@ from ragbench.llm.base import LLMClient
 SYSTEM_PROMPT = (
     "Answer only from the provided context. "
     "If the context does not contain the answer, say explicitly that you do not know. "
-    "Be concise and answer in the language of the question."
+    "Be concise. Write the answer in the same language as the question "
+    "(an English question gets an English answer), whatever the language of the context."
 )
 
 

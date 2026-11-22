@@ -16,3 +16,6 @@ PROJECT_SUMMARY.md
 CLAUDE.md
 .claude/
 RAG-BenchLab_recapitulatif.pdf
+
+# Local TLS interception CA bundle (machine-specific)
+certs/
