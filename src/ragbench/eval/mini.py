@@ -10,7 +10,7 @@ answers, and judges each question.
 - Judge failures (invalid JSON) are excluded from averages and reported.
 
 Run inside the backend container, after /ingest/corpus has finished:
-    docker compose exec backend python -m ragbench.eval.mini
+    docker compose exec backend python -m ragbench.eval.mini [naive|advanced]
 """
 import json
 import re
@@ -46,10 +46,10 @@ def _tokens(text: str) -> set[str]:
     return set(re.findall(r"[a-z0-9.]+", text.lower()))
 
 
-def query(question: str) -> dict:
+def query(question: str, pipeline: str = "naive") -> dict:
     req = urllib.request.Request(
         f"{API}/query",
-        data=json.dumps({"question": question}).encode(),
+        data=json.dumps({"question": question, "pipeline": pipeline}).encode(),
         headers={"Content-Type": "application/json"},
     )
     with urllib.request.urlopen(req, timeout=300) as resp:
@@ -92,13 +92,14 @@ def judge(client: AnthropicClient, q: dict, answer: str) -> dict:
 
 
 def main() -> int:
+    pipeline = sys.argv[1] if len(sys.argv) > 1 else "naive"
     questions = json.loads(DATASET.read_text(encoding="utf-8"))["questions"]
     judge_client = AnthropicClient(model=get_settings().judge_model)
     rows = []
     for q in questions:
         if not q["question"]:
             continue
-        r = query(q["question"])
+        r = query(q["question"], pipeline)
         row = {
             "id": q["id"], "type": q["type"], "answer": r["answer"],
             "sources": sorted({c["metadata"].get("source", "")[:3] for c in r["contexts"]}),
@@ -131,7 +132,7 @@ def main() -> int:
           f"median total: {statistics.median(r['total_ms'] for r in rows)} ms")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    out = OUT_DIR / f"mini_eval_{date.today().isoformat()}.json"
+    out = OUT_DIR / f"mini_eval_{pipeline}_{date.today().isoformat()}.json"
     out.write_text(json.dumps(rows, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"saved {out}")
     return 0

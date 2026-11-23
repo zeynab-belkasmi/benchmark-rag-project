@@ -1,0 +1,10 @@
+.git
+.env
+certs
+qdrant_storage
+corpus/raw
+data/models
+data/parsed
+data/results
+data/uploads
+**/__pycache__

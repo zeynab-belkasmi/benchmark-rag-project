@@ -10,6 +10,7 @@ services:
     build: .
     env_file: .env
     environment:
+      HF_HOME: /hf_cache
       QDRANT_URL: http://qdrant:6333
       # Local-only: trust the antivirus TLS-inspection root (see certs/, git-ignored).
       # Remove these 3 lines and the certs volume on a machine without interception.
@@ -25,3 +26,8 @@ services:
       - ./data:/app/data
       - ./corpus:/app/corpus
       - ./certs:/certs:ro
+      # Model cache on a named volume: Hugging Face symlinks break on the OneDrive bind mount.
+      - hf_cache:/hf_cache
+
+volumes:
+  hf_cache:

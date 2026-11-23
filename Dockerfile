@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 WORKDIR /app
-ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app/src HF_HOME=/app/data/models
+ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app/src HF_HOME=/hf_cache
 
 # CPU torch first (lighter image); GPU via docker-compose.gpu.yml (planned)
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu

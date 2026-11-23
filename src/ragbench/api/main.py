@@ -14,20 +14,25 @@ from pydantic import BaseModel
 
 from ragbench.ingestion.parser import parse_file
 from ragbench.llm.anthropic_client import AnthropicClient
+from ragbench.pipelines.advanced import AdvancedRAG
+from ragbench.pipelines.base import RAGPipeline
 from ragbench.pipelines.naive import NaiveRAG
 
 UPLOAD_DIR = Path("data/uploads")
 CORPUS_DIR = Path("corpus/raw")
 
 app = FastAPI(title="RAG-BenchLab")
-_pipelines: dict[str, NaiveRAG] = {}
+PIPELINES = {"naive": NaiveRAG, "advanced": AdvancedRAG}
+_pipelines: dict[str, RAGPipeline] = {}
 _jobs: dict[str, dict] = {}
 _job_lock = threading.Lock()
 
 
-def _get(name: str) -> NaiveRAG:
+def _get(name: str) -> RAGPipeline:
+    if name not in PIPELINES:
+        raise HTTPException(404, f"Unknown pipeline '{name}' (available: {sorted(PIPELINES)})")
     if name not in _pipelines:
-        _pipelines[name] = NaiveRAG(AnthropicClient())
+        _pipelines[name] = PIPELINES[name](AnthropicClient())
     return _pipelines[name]
 
 
@@ -43,8 +48,9 @@ def _run_ingest(job_id: str, paths: list[Path]) -> None:
         for i, path in enumerate(paths, 1):
             job["status"] = f"parsing {i}/{len(paths)}: {path.name}"
             docs.append(parse_file(path))
-        job["status"] = "indexing"
-        _get("naive").index(docs)
+        for name in PIPELINES:
+            job["status"] = f"indexing {name}"
+            _get(name).index(docs)
         job.update(status="done", indexed_documents=len(docs))
     except Exception as exc:  # reported through GET /ingest/{job_id}
         job.update(status="failed", error=f"{type(exc).__name__}: {exc}")

@@ -7,6 +7,7 @@ __pycache__/
 data/uploads/
 data/models/
 data/results/
+data/parsed/
 qdrant_storage/
 corpus/raw/
 

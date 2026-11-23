@@ -3,6 +3,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 
+PARSED_DIR = Path("data/parsed")  # git-ignored (data/ content other than eval_mini.json)
+
+
 @dataclass
 class Document:
     doc_id: str
@@ -14,9 +17,15 @@ def parse_file(path: str | Path) -> Document:
     path = Path(path)
     suffix = path.suffix.lower()
     if suffix == ".pdf":
-        import pymupdf4llm
+        cached = PARSED_DIR / f"{path.stem}.md"
+        if cached.exists() and cached.stat().st_mtime >= path.stat().st_mtime:
+            text = cached.read_text(encoding="utf-8")
+        else:
+            import pymupdf4llm
 
-        text = pymupdf4llm.to_markdown(str(path))
+            text = pymupdf4llm.to_markdown(str(path))
+            PARSED_DIR.mkdir(parents=True, exist_ok=True)
+            cached.write_text(text, encoding="utf-8")  # parsing is slow: reuse across re-indexing
     elif suffix in {".md", ".markdown", ".txt"}:
         text = path.read_text(encoding="utf-8")
     else:
