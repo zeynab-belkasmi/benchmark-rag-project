@@ -23,6 +23,7 @@ from ragbench.config import get_settings
 from ragbench.indexing.embeddings import EMBEDDING_DIM, embed
 
 DENSE, SPARSE = "dense", "bm25"
+UPSERT_BATCH = 128
 
 
 @lru_cache
@@ -58,16 +59,19 @@ class HybridStore:
 
     def add(self, ids: list[str], texts: list[str], payloads: list[dict]) -> None:
         """Index `texts` (dense + sparse); `payloads` carry the rest (incl. the window text)."""
-        dense, sparse = embed(texts), sparse_docs(texts)
-        points = [
-            PointStruct(
-                id=str(uuid.uuid5(uuid.NAMESPACE_URL, cid)),
-                vector={DENSE: d, SPARSE: s},
-                payload={"chunk_id": cid, **meta},
-            )
-            for cid, meta, d, s in zip(ids, payloads, dense, sparse)
-        ]
-        self.client.upsert(self.collection, points=points)
+        # Batches: a whole document in one request exceeds Qdrant's 32 MB payload limit.
+        for i in range(0, len(texts), UPSERT_BATCH):
+            sl = slice(i, i + UPSERT_BATCH)
+            dense, sparse = embed(texts[sl]), sparse_docs(texts[sl])
+            points = [
+                PointStruct(
+                    id=str(uuid.uuid5(uuid.NAMESPACE_URL, cid)),
+                    vector={DENSE: d, SPARSE: s},
+                    payload={"chunk_id": cid, **meta},
+                )
+                for cid, meta, d, s in zip(ids[sl], payloads[sl], dense, sparse)
+            ]
+            self.client.upsert(self.collection, points=points)
 
     def search(self, query: str, limit: int, prefetch: int) -> list[tuple[dict, float]]:
         """Dense and sparse top-`prefetch` lists fused with RRF; returns the top `limit`."""
