@@ -35,6 +35,7 @@ question --> /query?pipeline=... --> retrieve --> context budget --> Claude --> 
 
 - **LLM:** Claude API (`claude-sonnet-5-5` for generation, `claude-haiku-5-5` for graph extraction, `claude-opus-5-5` as judge).
 - **Local models:** `BAAI/bge-m3` embeddings and `BAAI/bge-reranker-v2-m3` reranker (the Anthropic API has no embeddings endpoint).
+- **Vector store:** Qdrant in server mode, persistent on disk, one collection per pipeline. A persistent database was chosen over an in-memory library such as FAISS because indexing is expensive on CPU, and because Advanced RAG needs hybrid dense + sparse search with RRF fusion and metadata filtering, which Qdrant provides server-side. FAISS would suit a small static corpus that can be rebuilt in seconds.
 - **Stack:** Python 3.11, FastAPI, Qdrant, fastembed (BM25 sparse vectors), sentence-transformers, NetworkX, LangGraph, RAGAS, Streamlit, Docker Compose.
 
 ## Corpus
