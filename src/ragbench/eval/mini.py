@@ -17,7 +17,7 @@ import re
 import statistics
 import sys
 import urllib.request
-from datetime import date
+from datetime import datetime
 from pathlib import Path
 
 from ragbench.config import get_settings
@@ -132,7 +132,8 @@ def main() -> int:
           f"median total: {statistics.median(r['total_ms'] for r in rows)} ms")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    out = OUT_DIR / f"mini_eval_{pipeline}_{date.today().isoformat()}.json"
+    # Timestamped so that two runs on the same day never overwrite each other.
+    out = OUT_DIR / f"mini_eval_{pipeline}_{datetime.now():%Y-%m-%d_%H%M%S}.json"
     out.write_text(json.dumps(rows, indent=1, ensure_ascii=False), encoding="utf-8")
     print(f"saved {out}")
     return 0

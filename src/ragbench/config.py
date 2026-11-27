@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     judge_model: str = "claude-opus-5-5"
 
     embedding_model: str = "BAAI/bge-m3"
+    reranker_model: str = "BAAI/bge-reranker-v2-m3"
+    reranker_int8: bool = False
     qdrant_url: str = "http://localhost:6333"
 
     # Controlled variables, identical for all pipelines (spec section 3)

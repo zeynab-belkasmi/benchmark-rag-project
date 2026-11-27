@@ -11,7 +11,7 @@ The question it tries to answer: *when does a more elaborate RAG pipeline actual
 | # | Pipeline | Strategy | Status |
 |---|----------|----------|--------|
 | P1 | Naive RAG | 512-token chunks (overlap 50), dense search, top-4 | Done, baseline evaluated |
-| P2 | Advanced RAG | Sentence-window indexing, hybrid dense + BM25 with RRF fusion, cross-encoder reranking (top-3) | Implemented, evaluation pending |
+| P2 | Advanced RAG | Sentence-window indexing, hybrid dense + BM25 with RRF fusion, cross-encoder reranking (top-3) | Implemented, mini-eval done |
 | P3 | GraphRAG | LLM entity/relation extraction, communities, local and global search (NetworkX) | Planned (week 2) |
 | P4 | Agentic RAG | LangGraph: routing, retrieval, grading, query reformulation, faithfulness check | Planned (week 3) |
 
@@ -84,16 +84,19 @@ A first mini evaluation script runs a small question set ([data/eval_mini.json](
 docker compose exec backend python -m ragbench.eval.mini naive      # or: advanced
 ```
 
-**P1 baseline (10 questions, indicative only, judge = `claude-opus-5-5`):**
+**Mini evaluation (10 questions, indicative only, judge = `claude-opus-5-5`):**
 
-| Metric | Value |
-|--------|-------|
-| Answer correctness (correct = 1, partial = 0.5) | 0.70 |
-| Document hit | 0.96 |
-| Median time to first token | 0.9 s |
-| Median total latency | 2.4 s |
+| Metric | P1 Naive | P2 Advanced |
+|--------|----------|-------------|
+| Answer correctness (correct = 1, partial = 0.5) | 0.70 | 0.80 |
+| Document hit | 0.96 | 0.80 |
+| Median input tokens | 2,901 | 1,143 |
+| Median time to first token | 0.9 s | 0.8 s |
+| Median total latency | 2.4 s | 18.8 s |
 
-By question type: factual 0.88, multi-passage 0.50, relational 0.50, no-answer 1.00. The failures are mostly retrieval misses (table values, or the second paper of a multi-document question), and the model abstains rather than inventing an answer. This is the gap P2 to P4 are meant to close. With n = 10 these figures are a sanity check, not a result.
+P1 failures are mostly retrieval misses (table values, or the second paper of a multi-document question), and the model abstains rather than inventing an answer. P2's reranker recovers several of them (factual questions 0.88 -> 1.00, multi-passage 0.50 -> 0.67), but its three sentence windows carry less than half of P1's context, and one multi-document question is lost.
+
+P2's latency is almost entirely the `bge-reranker-v2-m3` cross-encoder running on CPU (~16 s for 20 candidate windows). Faster variants were measured: dynamic int8 quantization (~10.6 s total, correctness 0.70) and `ms-marco-MiniLM-L-6-v2` (~2.9 s total, correctness 0.65). The reranker is configurable (`RERANKER_MODEL`, `RERANKER_INT8`), so this trade-off can be measured properly on the full question set. With n = 10 these figures are a sanity check, not a result.
 
 ## Tests
 
